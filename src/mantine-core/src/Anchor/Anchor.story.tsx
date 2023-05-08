@@ -34,15 +34,3 @@ export function InheritFontSize() {
     </div>
   );
 }
-
-export function WithUnderlineProp() {
-  return (
-    <div style={{ padding: 40 }}>
-      <Anchor href="/">Underline should be ENABLED</Anchor>
-      <br />
-      <Anchor href="/" underline={false}>
-        Underline should be DISABLED
-      </Anchor>
-    </div>
-  );
-}

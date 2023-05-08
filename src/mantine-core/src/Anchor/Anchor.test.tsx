@@ -33,4 +33,14 @@ describe('@mantine/core/Anchor', () => {
     expect(button.querySelector('button').getAttribute('type')).toBe('button');
     expect(buttonReset.querySelector('button').getAttribute('type')).toBe('reset');
   });
+
+  it('sets underline=false by default', () => {
+    const { container: link } = render(<Anchor />);
+    expect(link.querySelector('a')).not.toHaveStyle({ 'text-decoration': 'underline' });
+  });
+
+  it('adds text-decoration underline if underline prop is true', () => {
+    const { container: link } = render(<Anchor underline />);
+    expect(link.querySelector('a')).toHaveStyle({ 'text-decoration': 'underline' });
+  });
 });
