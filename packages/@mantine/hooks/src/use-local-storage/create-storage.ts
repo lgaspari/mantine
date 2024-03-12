@@ -80,7 +80,7 @@ export function createStorage<T>(type: StorageType, hookName: string) {
     serialize = (value: T) => serializeJSON(value, hookName),
   }: StorageProperties<T>) {
     const readStorageValue = useCallback(
-      (skipStorage?: boolean): T => {
+      (skipStorage?: boolean): T | undefined => {
         let storageBlockedOrSkipped;
 
         try {
@@ -94,19 +94,19 @@ export function createStorage<T>(type: StorageType, hookName: string) {
         }
 
         if (storageBlockedOrSkipped) {
-          return defaultValue as T;
+          return undefined;
         }
 
         const storageValue = getItem(key);
-        return storageValue !== null ? deserialize(storageValue) : (defaultValue as T);
+        return storageValue !== null ? deserialize(storageValue) : undefined;
       },
-      [key, defaultValue]
+      [defaultValue, key]
     );
 
-    const [value, setValue] = useState<T>(readStorageValue(getInitialValueInEffect));
+    const [value, setValue] = useState<T | undefined>(readStorageValue(getInitialValueInEffect));
 
     const setStorageValue = useCallback(
-      (val: T | ((prevState: T) => T)) => {
+      (val: T | ((prevState: T | undefined) => T)) => {
         if (val instanceof Function) {
           setValue((current) => {
             const result = val(current);
@@ -118,7 +118,9 @@ export function createStorage<T>(type: StorageType, hookName: string) {
           });
         } else {
           setItem(key, serialize(val));
-          window.dispatchEvent(new CustomEvent(eventName, { detail: { key, value: val } }));
+          window.dispatchEvent(
+            new CustomEvent(eventName, { detail: { key, value: val } })
+          );
           setValue(val);
         }
       },
@@ -142,19 +144,17 @@ export function createStorage<T>(type: StorageType, hookName: string) {
       }
     });
 
+    // For this side-effect to work we must assure that `value` will take
+    // an `undefined` value at some point (see `readStorageValue()`).
     useEffect(() => {
       if (defaultValue !== undefined && value === undefined) {
         setStorageValue(defaultValue);
       }
     }, [defaultValue, value, setStorageValue]);
 
-    useEffect(() => {
-      setStorageValue(readStorageValue());
-    }, []);
-
-    return [value === undefined ? defaultValue : value, setStorageValue, removeStorageValue] as [
-      T,
-      (val: T | ((prevState: T) => T)) => void,
+    return [value, setStorageValue, removeStorageValue] as [
+      T | undefined,
+      (val: T | ((prevState: T | undefined) => T)) => void,
       () => void,
     ];
   };
@@ -165,9 +165,8 @@ export function readValue(type: StorageType) {
 
   return function read<T>({
     key,
-    defaultValue,
     deserialize = deserializeJSON,
-  }: StorageProperties<T>) {
+  }: Omit<StorageProperties<T>, 'defaultValue'>) {
     let storageBlockedOrSkipped;
 
     try {
@@ -178,10 +177,10 @@ export function readValue(type: StorageType) {
     }
 
     if (storageBlockedOrSkipped) {
-      return defaultValue as T;
+      return undefined;
     }
 
     const storageValue = getItem(key);
-    return storageValue !== null ? deserialize(storageValue) : (defaultValue as T);
+    return storageValue !== null ? deserialize(storageValue) : undefined;
   };
 }
