@@ -118,9 +118,7 @@ export function createStorage<T>(type: StorageType, hookName: string) {
           });
         } else {
           setItem(key, serialize(val));
-          window.dispatchEvent(
-            new CustomEvent(eventName, { detail: { key, value: val } })
-          );
+          window.dispatchEvent(new CustomEvent(eventName, { detail: { key, value: val } }));
           setValue(val);
         }
       },
@@ -144,13 +142,18 @@ export function createStorage<T>(type: StorageType, hookName: string) {
       }
     });
 
-    // For this side-effect to work we must assure that `value` will take
-    // an `undefined` value at some point (see `readStorageValue()`).
     useEffect(() => {
-      if (defaultValue !== undefined && value === undefined) {
+      let storageValue: T | undefined;
+      if (getInitialValueInEffect) {
+        storageValue = readStorageValue();
+      }
+
+      if (storageValue) {
+        setStorageValue(storageValue);
+      } else if (defaultValue !== undefined && value === undefined) {
         setStorageValue(defaultValue);
       }
-    }, [defaultValue, value, setStorageValue]);
+    }, []);
 
     return [value, setStorageValue, removeStorageValue] as [
       T | undefined,

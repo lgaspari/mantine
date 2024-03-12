@@ -4,8 +4,6 @@ import { readLocalStorageValue, useLocalStorage } from './use-local-storage';
 
 export default { title: 'use-local-storage' };
 
-const getRandomKey = () => Math.random().toString(36).substr(2, 5);
-
 function Wrapper<T>({ storage: { key, ...options } }: { storage: StorageProperties<T> }) {
   const [value] = useLocalStorage({ key, ...options });
 
@@ -29,20 +27,58 @@ function Wrapper<T>({ storage: { key, ...options } }: { storage: StorageProperti
   );
 }
 
-export function WithoutDefaultValue() {
-  return <Wrapper storage={{ getInitialValueInEffect: false, key: getRandomKey() }} />;
+export function NoDefaultValue() {
+  return <Wrapper storage={{ getInitialValueInEffect: false, key: 'no-default-value' }} />;
 }
 
-export function WithoutDefaultValueSSR() {
-  return <Wrapper storage={{ key: getRandomKey() }} />;
+export function NoDefaultValueSSR() {
+  return <Wrapper storage={{ key: 'no-default-value-ssr' }} />;
+}
+
+export function NoDefaultValueWithStoredValue() {
+  const key = 'no-default-value-with-stored-value';
+
+  // Forces a value on local storage
+  window.localStorage.setItem(key, '123');
+
+  return <Wrapper storage={{ getInitialValueInEffect: false, key }} />;
+}
+
+export function NoDefaultValueWithStoredValueSSR() {
+  const key = 'no-default-value-with-stored-value-ssr';
+
+  // Forces a value on local storage
+  window.localStorage.setItem(key, '456');
+
+  return <Wrapper storage={{ key }} />;
 }
 
 export function WithDefaultValue() {
   return (
-    <Wrapper storage={{ defaultValue: 123, getInitialValueInEffect: false, key: getRandomKey() }} />
+    <Wrapper
+      storage={{ defaultValue: 123, getInitialValueInEffect: false, key: 'with-default-value' }}
+    />
   );
 }
 
 export function WithDefaultValueSSR() {
-  return <Wrapper storage={{ defaultValue: 456, key: getRandomKey() }} />;
+  return <Wrapper storage={{ defaultValue: 456, key: 'with-default-value-ssr' }} />;
+}
+
+export function WithDefaultValueAndStoredValue() {
+  const key = 'with-default-value-and-stored-value';
+
+  // Forces a value on local storage
+  window.localStorage.setItem(key, '654');
+
+  return <Wrapper storage={{ defaultValue: 123, getInitialValueInEffect: false, key }} />;
+}
+
+export function WithDefaultValueAndStoredValueSSR() {
+  const key = 'with-default-value-and-stored-value-ssr';
+
+  // Forces a value on local storage
+  window.localStorage.setItem(key, '321');
+
+  return <Wrapper storage={{ defaultValue: 456, key }} />;
 }
